@@ -122,7 +122,3 @@ def median(sample):
 
 sample = [28900, 29200, 27400, 28700, 28400, 29900, 30200, 29500, 29600, 28400, 28300, 29300, 29300, 28100, 30200, 30200, 30300, 31200, 28800, 27600, 29600, 25900, 32000, 33400, 30600, 32700, 31300, 30500, 31300, 29000, 29400, 28300, 30500, 31100, 29300, 27400, 29300, 29300, 31300, 27500, 29400]
 
-empirical_cdf(sample, 0.05)
-
-#print(mean_sample(sample),'\n',var_sample(sample),'\n',std_sample(sample),'\n',cov_sample(sample),'\n',skewness(sample),'\n',skewness_coef(sample))
-#hist(sample, 'sturges', True, False)
