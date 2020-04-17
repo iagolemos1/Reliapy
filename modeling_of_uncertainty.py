@@ -103,7 +103,7 @@ def empirical_cdf(sample, alpha): #Plot empirical cfd with confidence interval
     plt.scatter(sorted(sample), y, label='Empirical CDF')
     plt.plot(sorted(sample), F1, linestyle='--', color='red', alpha = 0.8, lw = 0.9, label = 'Dvoretzky–Kiefer–Wolfowitz Confidence Bands')
     plt.plot(sorted(sample), F2, linestyle='--', color='red', alpha = 0.8, lw = 0.9)
-    plt.ylabel('Empirical Cumulative Distribution Function')
+    plt.ylabel('Cumulative Distribution Function')
     plt.xlabel('Observed Data')
     plt.legend()
     plt.show()
