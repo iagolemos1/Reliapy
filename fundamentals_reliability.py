@@ -3,6 +3,8 @@ import modeling_of_uncertainty as moe
 import normal_probability_distribution as npd
 from scipy import stats as st 
 import matplotlib.pyplot as plt
+import scipy as sp
+
 
 #Load and resistence normal variables - single load
 #R = Resistence array variables
@@ -71,5 +73,63 @@ def multiple_load_norm_factors(R_mean, S_mean_array, R_std, S_std_array, k_R, k_
 
     print('\n\nNominal Reduction Factor = {}.\nLoad Factors = {}\n\n'.format(phi_factor, gamma_factor))
     
+def afosm_l_ls(R_mean, S_mean, R_std, S_std): #reduced hasofer-lind method for linear limit state
 
-multiple_load_norm_factors(4962.16, [750.06, 775.845], 645.08, [97.47, 287.01], 2, [2, 2])
+    beta_HL = (R_mean - S_mean)/(R_std**2 + S_std**2)**0.5
+
+    R_line = np.arange(-R_mean, R_mean + 2*R_mean/100, 2*R_mean/100)
+
+    def S_line_calc(R_line):
+        S_line = (R_std*R_line + R_mean - S_mean)/S_std
+        return S_line
+
+    S_line = S_line_calc(R_line)
+
+    r_linha_ast = -(R_std/(R_std**2 + S_std**2)**0.5)*beta_HL
+    s_linha_ast = (S_std/(R_std**2 + S_std**2)**0.5)*beta_HL
+
+    plt.plot(R_line, S_line, label = 'Limit State Line', color = 'black')
+    plt.scatter(r_linha_ast, s_linha_ast, label = 'Design Point', color = 'red')
+    plt.scatter(0, 0, color = 'blue', label = 'Checking Point')
+    plt.legend()
+    plt.show()
+
+    p_f = 1 - npd.phi(beta_HL, 0, 1)
+
+    print('\nBy using the analytical model for the Hasofer-Lind Method with the linear limit state equation: ').\
+    print('Reliability index: {}\nProbability of Failure = {}%.\n'.format(beta_HL, p_f*100))
+    
+
+
+def afosm_nl_ls(g, X_1_mean, X_2_mean):
+    d = 2
+    R = np.eye(d)
+    marginals = np.array(R, ndmin=1)
+    d_2 = len(marginals)
+    x_init = np.tile([0.1],[d_2,1]) #initial search point
+
+    # objective function from the book
+    dist_fun = lambda u: np.linalg.norm(u) 
+
+    # method for minimization
+    alg = 'SLSQP'
+
+    H = lambda u: g(u)
+    cons = ({'type': 'ineq', 'fun': lambda u: -H(u.reshape(-1,1))})
+    
+    #constraints 
+    result = sp.optimize.minimize(dist_fun, x0 = x_init, constraints = cons, method=alg)
+
+    #geting main results
+    beta_value = result.fun
+    iterations = result.nit
+
+    p_f = 1 - npd.phi(beta_value, 0, 1)
+
+    print('\nBy using the', alg, 'Method for minimizing the limit state equation from scipy package:')
+    print('Iterations: {}\nReliability index = {}\nProbability of failure = {}%\n\n'.format(iterations, beta_value, p_f*100))
+
+    return p_f, beta_value
+
+g     = lambda x : 18*x[0,:] - 12*x[1,:] + 120 - 50
+beta = afosm_nl_ls(g, 1, 1)
