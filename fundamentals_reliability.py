@@ -4,6 +4,8 @@ import normal_probability_distribution as npd
 from scipy import stats as st 
 import matplotlib.pyplot as plt
 import scipy as sp
+from matplotlib import colors
+import math as mt
 
 
 #Load and resistence normal variables - single load
@@ -99,10 +101,8 @@ def afosm_l_ls(R_mean, S_mean, R_std, S_std): #reduced hasofer-lind method for l
     print('\nBy using the analytical model for the Hasofer-Lind Method with the linear limit state equation: ').\
     print('Reliability index: {}\nProbability of Failure = {}%.\n'.format(beta_HL, p_f*100))
     
-
-
-def afosm_nl_ls(g, X_1_mean, X_2_mean):
-    d = 2
+def afosm_nl_ls(g, d_input):
+    d = d_input
     R = np.eye(d)
     marginals = np.array(R, ndmin=1)
     d_2 = len(marginals)
@@ -123,13 +123,34 @@ def afosm_nl_ls(g, X_1_mean, X_2_mean):
     #geting main results
     beta_value = result.fun
     iterations = result.nit
+    u_ast = result.x
+
+    if d == 2:
+        plt.figure()
+        xx      = np.linspace(-10, 10, 200)
+        [X1,X2] = np.meshgrid(xx,xx)
+        xnod    = np.array([X1,X2])
+        ZX      = g(xnod)
+        #norm = colors.Normalize(vmin = np.nanmin(ZX), vmax = np.nanmax(ZX))
+        plt.pcolor(X1,X2,ZX, cmap = 'RdBu')
+        plt.contour(X1,X2,ZX,[0]) 
+        plt.scatter(0,0, color = 'dimgray', label = 'Checking Point')     
+        plt.plot([0, u_ast[0]],[0, u_ast[1]],label='Hasofer-Lind Method with SLSQP solver')    # reliability index beta
+        plt.scatter(u_ast[0], u_ast[1], color = 'black', label = 'Design Point')                       # design point in standard    
+        plt.title('Standard space')
+        plt.xlabel(r"$X_1^{*}$'")
+        plt.ylabel(r"$X_2^{*}$'")
+        plt.legend()
+        plt.show()    
 
     p_f = 1 - npd.phi(beta_value, 0, 1)
 
-    print('\nBy using the', alg, 'Method for minimizing the limit state equation from scipy package:')
+    print('\nBy using the', alg, 'Method for minimizing the distance from scipy package:')
     print('Iterations: {}\nReliability index = {}\nProbability of failure = {}%\n\n'.format(iterations, beta_value, p_f*100))
 
     return p_f, beta_value
 
-g     = lambda x : 18*x[0,:] - 12*x[1,:] + 120 - 50
-beta = afosm_nl_ls(g, 1, 1)
+r = 5.26 
+m = 1                 
+g  = lambda u: 1 - (np.sqrt(np.sum(u**2, axis=0))/r)**2 - (u[0,:]/r)*((1-(np.sqrt(np.sum(u**2, axis=0))/r)**m)/(1+(np.sqrt(np.sum(u**2, axis=0))/r)**m))
+beta = afosm_nl_ls(g, 2)

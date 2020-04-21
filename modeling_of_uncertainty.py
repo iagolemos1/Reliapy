@@ -4,8 +4,6 @@ import seaborn as sns
 from scipy import stats as st
 import math as mt
 
-sns.set(style = 'whitegrid')
-
 def mean_sample(sample): #First moment, compute the mean from the observed data
     mean = sum(sample)/len(sample)
 

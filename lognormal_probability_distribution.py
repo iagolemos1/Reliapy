@@ -6,24 +6,31 @@ import math as mt
 import seaborn as sns
 sns.set_style("ticks")
 
-def norm_pdf_plot(sample): #Plots the normal pdf with normalized histogram
+def lognorm_pdf_plot(sample):
+    ln_x = []
+    for data in sample:
+        ln_x.append(mt.log(data))
     mean = mou.mean_sample(sample)
-    std = mou.std_sample(sample)
+    std = mou.std_sample(ln_x)
     step = abs(min(sample) - max(sample))/100
     x = np.arange(min(sample), max(sample) + step, step)
-    pdf = st.norm.pdf(x, mean, std)
+    pdf = st.lognorm.pdf(x, s = std, scale = mean, loc = 0)
     plt.plot(x, pdf, color = 'dimgray', label = 'Theoretical PDF')
     plt.legend()
     mou.hist(sample, 'sturges', dens_norm = True)
+    print(pdf)
     
     return pdf
 
-def norm_cdf_plot(sample, alpha): #Plots the normal theoretical cdf compared to the empirical one
+def lognorm_cdf_plot(sample, alpha): #Plots the normal theoretical cdf compared to the empirical one
+    ln_x = []
+    for data in sample:
+        ln_x.append(mt.log(data))
     mean = mou.mean_sample(sample)
-    std = mou.std_sample(sample)
+    std = mou.std_sample(ln_x)
     step = abs(min(sample) - max(sample))/100
     x = np.arange(min(sample), max(sample) + step, step)
-    cdf = st.norm.cdf(x, mean, std)
+    cdf = st.lognorm.cdf(x, s = std, scale = mean, loc = 0)
 
     n = len(sample)
     y = np.arange(1, n+1)/n
@@ -45,32 +52,26 @@ def norm_cdf_plot(sample, alpha): #Plots the normal theoretical cdf compared to 
     plt.show()
 
     return cdf
-
-
-def phi(x, mean, std): #Computes the probability of getting a value of x or lesser in a random variable (cdf) 
-    phi = st.norm.cdf(x, mean, std)
+    
+def phi(x, mean, s): #Computes the probability of getting a value of x or lesser in a random variable (cdf) 
+    phi = st.lognorm.cdf(x, s = s, scale = mean, loc = 0)
 
     return phi
 
-def mean_norm(sample, alpha):
-    n = len(sample)
-    std = mou.std_sample(sample)
-    k = st.norm.ppf(1 - alpha/2)
-    e = k*std/(n**0.5)
-
-    print("The population mean with a confidence level of {}% is {} \u00B1 {}.".format(int((1-alpha)*100), mou.mean_sample(sample), e))
-
-def phi_inverse(prob): #Computes the inverse of the normal for a given probability
-    phi_inv = st.norm.ppf(prob)
+def phi_inverse(prob, s, mean): #Computes the inverse of the normal for a given probability
+    phi_inv = st.lognorm.ppf(prob, s = s, scale = mean, loc = 0)
 
     return phi_inv
 
-def norm_qq_plot(sample, alpha): #plots the quantile-quantie plot for the given data
+def lognorm_qq_plot(sample, alpha): #plots the quantile-quantie plot for the given data
     y = np.arange(1, len(sample)+1)/(len(sample)+1)
+    ln_x = []
+    for data in sample:
+        ln_x.append(mt.log(data))
     mean = mou.mean_sample(sample)
-    std = mou.std_sample(sample)
-    theo_qq = phi_inverse(y)
-    x = theo_qq*std + mean
+    std = mou.std_sample(ln_x)
+    theo_qq = st.lognorm.ppf(y, s = std, loc = 0, scale = mean)
+    x = theo_qq
 
     #Kolmogorov-Smirnov Test for getting the confidence interval
     K = (-0.5*mt.log(alpha/2))**0.5
@@ -80,17 +81,16 @@ def norm_qq_plot(sample, alpha): #plots the quantile-quantie plot for the given 
     for prob in y:
         F1 = prob - K/M
         F2 = prob + K/M
-        s_low = phi_inverse(F1)
-        s_high = phi_inverse(F2)
-        CI_qq_low.append(s_low*std + mean)
-        CI_qq_high.append(s_high*std + mean)
+        s_low = st.lognorm.ppf(F1, s = std, loc = 0, scale = mean)
+        s_high = st.lognorm.ppf(F2, s = std, loc = 0, scale = mean)
+        CI_qq_low.append(s_low)
+        CI_qq_high.append(s_high)
     sns.regplot(x, sorted(sample), ci = None, line_kws={'color':'dimgray','label':'Regression Line'})
     plt.plot(sorted(sample), CI_qq_low, linestyle='--', color='red', alpha = 1, lw = 0.8, label = 'Kolmogorov-Smirnov Confidence Bands')
     plt.legend()
     plt.plot(sorted(sample), CI_qq_high, linestyle='--', color='red', alpha = 1, lw = 0.8)
-    plt.xlabel('Theoretical Normal Quantiles')
+    plt.xlabel('Theoretical Lognormal Quantiles')
     plt.ylabel('Sample Quantiles')
 
     plt.show()
-
 sample = [28900, 29200, 27400, 28700, 28400, 29900, 30200, 29500, 29600, 28400, 28300, 29300, 29300, 28100, 30200, 30200, 30300, 31200, 28800, 27600, 29600, 25900, 32000, 33400, 30600, 32700, 31300, 30500, 31300, 29000, 29400, 28300, 30500, 31100, 29300, 27400, 29300, 29300, 31300, 27500, 29400]
