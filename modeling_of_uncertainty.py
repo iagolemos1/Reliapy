@@ -83,8 +83,8 @@ def kurtosis_coef(sample): #Kurtosis coeficiente is also a nondimensional measur
     
     return kurtosis_coef
 
-def hist(sample, bins, dens_norm, cumulative_norm): #Simple plot of the histogram from the observed data
-    plt.hist(sample, bins, density = dens_norm, cumulative = cumulative_norm)
+def hist(sample, bins, dens_norm): #Simple plot of the histogram from the observed data
+    plt.hist(sample, bins, density = dens_norm)
     plt.xlabel('Observed Data')
     plt.ylabel('Frequency')
     plt.show()
