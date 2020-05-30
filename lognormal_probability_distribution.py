@@ -4,6 +4,7 @@ import modeling_of_uncertainty as mou
 import matplotlib.pyplot as plt
 import math as mt
 import seaborn as sns
+from scipy import stats as st
 sns.set_style("ticks")
 
 def lognorm_pdf_plot(sample):
@@ -53,15 +54,22 @@ def lognorm_cdf_plot(sample, alpha): #Plots the normal theoretical cdf compared 
 
     return cdf
     
-def phi(x, mean, s): #Computes the probability of getting a value of x or lesser in a random variable (cdf) 
-    phi = st.lognorm.cdf(x, s = s, scale = mean, loc = 0)
+def lognorm_cdf(x, mean, std): #Computes the probability of getting a value of x or lesser in a random variable (cdf) 
+    delta = std/mean
+    xi    = mt.log(1 + delta**2)**0.5
+    lambda_est = mt.log(mean) - 0.5*(xi**2)
 
-    return phi
+    cdf = st.norm.cdf(mt.log(x), lambda_est, xi)
 
-def phi_inverse(prob, s, mean): #Computes the inverse of the normal for a given probability
-    phi_inv = st.lognorm.ppf(prob, s = s, scale = mean, loc = 0)
+    return cdf
 
-    return phi_inv
+def lognorm_ppf(prob, mean, std): #Computes the inverse of the normal for a given probability
+    delta = std/mean
+    xi    = mt.log(1 + delta**2)**0.5
+    lambda_est = mt.log(mean) - 0.5*(xi**2)
+    ppf = st.norm.ppf(prob, lambda_est, xi)
+
+    return ppf
 
 def lognorm_qq_plot(sample, alpha): #plots the quantile-quantie plot for the given data
     y = np.arange(1, len(sample)+1)/(len(sample)+1)
@@ -93,4 +101,3 @@ def lognorm_qq_plot(sample, alpha): #plots the quantile-quantie plot for the giv
     plt.ylabel('Sample Quantiles')
 
     plt.show()
-sample = [28900, 29200, 27400, 28700, 28400, 29900, 30200, 29500, 29600, 28400, 28300, 29300, 29300, 28100, 30200, 30200, 30300, 31200, 28800, 27600, 29600, 25900, 32000, 33400, 30600, 32700, 31300, 30500, 31300, 29000, 29400, 28300, 30500, 31100, 29300, 27400, 29300, 29300, 31300, 27500, 29400]
